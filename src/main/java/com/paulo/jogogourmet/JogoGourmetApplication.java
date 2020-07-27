@@ -1,7 +1,5 @@
 package com.paulo.jogogourmet;
 
-import java.util.Iterator;
-
 import javax.swing.JOptionPane;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +20,10 @@ public class JogoGourmetApplication implements CommandLineRunner {
 	@Autowired
 	private PratoService pratoService;
 
-	private static final Integer SIM = 0;
 	private static final Integer NAO_CONTINUAR = 1;
-
+	private static final String OPCAO_SIM = "SIM";
+	private static final String OPCAO_NAO = "NÃO";
+	
 	public static void main(String[] args) {
 		SpringApplication.run(JogoGourmetApplication.class, args);
 	}
@@ -36,52 +35,16 @@ public class JogoGourmetApplication implements CommandLineRunner {
 		boolean encerrar = false;
 
 		while (!encerrar) {
-
 			JOptionPane.showMessageDialog(null, "Pense em um prato que você gosta");
-
-			Iterator<Categoria> categorias = categoriaService.listar().iterator();
+			
 			boolean encontrouCategoria = false;
-			while (categorias.hasNext()) {
-				Categoria categoria = categorias.next();
-				Integer respostaCategoria = JOptionPane.showConfirmDialog(null,
-						"O prato que você pensou é: " + categoria.getNome() + "?", "O prato que você pensou",
-						JOptionPane.YES_NO_OPTION);
-
-				if (respostaCategoria == SIM) {
-					encontrouCategoria = true;
-					boolean encontrouPrato = false;
-					Iterator<Prato> pratos = pratoService.buscarPorCategoria(categoria).iterator();
-					while (pratos.hasNext()) {
-						Prato prato = pratos.next();
-						Integer respostaPrato = JOptionPane.showConfirmDialog(null,
-								"Você pensou em: " + prato.getNome() + "?", "Você pensou em",
-								JOptionPane.YES_NO_OPTION);
-						if (respostaPrato == SIM) {
-							encontrouPrato = true;
-							break;
-						}
-					}
-					if (encontrouPrato) {
-						JOptionPane.showMessageDialog(null, "Acertei de novo!");
-					} else {
-						String nomeDoPrato = JOptionPane.showInputDialog("Qual o prato que você pensou?");
-						Prato prato = new Prato(nomeDoPrato, categoria);
-						pratoService.salvar(prato);
-					}
-					break;
-				}
-			}
-			if (!encontrouCategoria) {
-				String nomeDoPrato = JOptionPane.showInputDialog("Qual o prato que você pensou?");
-				String nomeDaCategoria = JOptionPane.showInputDialog(nomeDoPrato + " é um ________?");
-				Categoria novaCategoria = new Categoria(nomeDaCategoria);
-				categoriaService.salvar(novaCategoria);
-				Prato prato = new Prato(nomeDoPrato, novaCategoria);
-				pratoService.salvar(prato);
-			}
-			Object[] options = { "SIM", "NÃO" };
-			int respostaEncerrar = JOptionPane.showOptionDialog(null, "Deseja continuar?", null,
-					JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+			encontrouCategoria = categoriaService.encontrarCategoria();
+			
+			if (!encontrouCategoria)
+				categoriaService.cadastrarPratoECategoria();
+			
+			Object[] opcoes = { OPCAO_SIM, OPCAO_NAO };
+			int respostaEncerrar = JOptionPane.showOptionDialog(null, "Deseja continuar?", null, JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, opcoes, opcoes[0]);
 			if (respostaEncerrar == NAO_CONTINUAR)
 				encerrar = true;
 		}
